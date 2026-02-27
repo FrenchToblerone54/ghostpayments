@@ -58,8 +58,11 @@ def make_admin_bp(url_prefix):
             db.commit()
             flash(f"API Key created: {plaintext}", "key")
             return redirect(url_prefix + "/keys")
-        api_keys = db.execute("SELECT * FROM api_keys ORDER BY created_at DESC").fetchall()
-        return render_template("admin/keys.html", api_keys=[dict(k) for k in api_keys])
+        page = max(1, int(request.args.get("page", 1)))
+        total = db.execute("SELECT COUNT(*) FROM api_keys").fetchone()[0]
+        pages = max(1, (total + 9) // 10)
+        api_keys = db.execute("SELECT * FROM api_keys ORDER BY created_at DESC LIMIT 10 OFFSET ?", ((page - 1) * 10,)).fetchall()
+        return render_template("admin/keys.html", api_keys=[dict(k) for k in api_keys], page=page, pages=pages)
 
     @admin_bp.route("/keys/<key_id>/revoke", methods=["POST"])
     def revoke_key(key_id):
@@ -67,6 +70,14 @@ def make_admin_bp(url_prefix):
         db.execute("UPDATE api_keys SET is_active=0 WHERE id=?", (key_id,))
         db.commit()
         flash("Key revoked.", "success")
+        return redirect(url_prefix + "/keys")
+
+    @admin_bp.route("/keys/<key_id>/delete", methods=["POST"])
+    def delete_key(key_id):
+        db = get_db()
+        db.execute("DELETE FROM api_keys WHERE id=? AND is_active=0", (key_id,))
+        db.commit()
+        flash("Key deleted.", "success")
         return redirect(url_prefix + "/keys")
 
     @admin_bp.route("/invoice/<invoice_id>")
