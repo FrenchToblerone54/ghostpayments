@@ -49,7 +49,7 @@ def make_admin_bp(url_prefix):
             if not label:
                 flash("Label is required.", "error")
                 return redirect(request.referrer or url_prefix + "/keys")
-            plaintext = "gp_" + generate(size=27)
+            plaintext = "gp_" + generate(size=32)
             key_hash = _hash_key(plaintext)
             key_prefix = plaintext[:8]
             key_id = generate(size=20)
