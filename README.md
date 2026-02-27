@@ -4,8 +4,6 @@
 
 GhostPayments is a self-hosted, non-custodial crypto payment processor for BSC and Polygon chains. It generates unique deposit addresses from your wallet mnemonic, monitors incoming payments via public RPC nodes, and automatically sweeps funds to your main wallet — using a separate fee wallet to cover gas without manual intervention.
 
-Part of the Ghost ecosystem: [GhostWire](https://github.com/FrenchToblerone54/ghostwire) · [GhostGate](https://github.com/FrenchToblerone54/ghostgate) · [GhostPass](https://github.com/FrenchToblerone54/ghostpass) · **GhostPayments**
-
 ## Features
 
 * **No full node required** — uses public RPC endpoints (BSC, Polygon)
