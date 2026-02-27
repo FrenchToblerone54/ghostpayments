@@ -161,7 +161,11 @@
             <div class="form-group"><label>HTTP Proxy</label><input type="text" name="UPDATE_HTTP_PROXY" value="{{ http_proxy }}" placeholder="http://proxy:port or blank"></div>
             <div class="form-group"><label>HTTPS Proxy</label><input type="text" name="UPDATE_HTTPS_PROXY" value="{{ https_proxy }}" placeholder="http://proxy:port or blank"></div>
           </div>
-          <button type="submit" class="btn btn-primary">Save Tuning</button>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+            <button type="submit" class="btn btn-primary">Save Tuning</button>
+            <button type="button" class="btn btn-danger" onclick="restartService()">Restart Service</button>
+            <span id="tuningRestartStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);"></span>
+          </div>
         </form>
       </div>
     </div>
@@ -240,18 +244,20 @@ function applyUpdate() {
   fetch("{{ ap }}/system/update-apply", {method:"POST"}).catch(function() {});
 }
 function restartService() {
-  var st = document.getElementById("restartStatus");
-  st.textContent = "Restarting\u2026";
-  st.style.color = "var(--text-dim)";
+  var ids = ["restartStatus", "tuningRestartStatus"];
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = "Restarting\u2026"; el.style.color = "var(--text-dim)"; }
+  });
   fetch("{{ ap }}/system/restart", {method:"POST"})
     .then(function() {
-      st.textContent = "Restarting, reconnecting\u2026";
-      st.style.color = "var(--amber)";
+      ids.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.textContent = "Reconnecting\u2026"; el.style.color = "var(--amber)"; }
+      });
       setTimeout(function() { location.reload(); }, 3000);
     })
-    .catch(function() {
-      setTimeout(function() { location.reload(); }, 3000);
-    });
+    .catch(function() { setTimeout(function() { location.reload(); }, 3000); });
 }
 </script>
 {% endblock %}
