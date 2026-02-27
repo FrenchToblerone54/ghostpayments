@@ -1,0 +1,13 @@
+[Unit]
+Description=GhostPayments Crypto Payment Processor
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/ghostpayments/.env
+ExecStart=/usr/local/bin/ghostpayments
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Pay Invoice — GhostPayments{% endblock %}
+{% block body %}
+<div class="pay-wrap">
+  <div class="pay-card card" id="payCard">
+    <div class="pay-header">
+      <div class="ghost-icon">
+        <svg viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="ghost-svg">
+          <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".15"/>
+          <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="14" cy="20" r="3" fill="currentColor"/>
+          <circle cx="26" cy="20" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="pay-title-block">
+        <div class="pay-brand">GhostPayments</div>
+        <div class="pay-countdown" id="countdown">--:--</div>
+      </div>
+    </div>
+
+    <div class="pay-chain-tabs" id="chainTabs">
+      <button class="chain-tab active" data-chain="main">
+        <span class="chain-badge">{{ invoice.token }} {{ invoice.chain }}</span>
+      </button>
+    </div>
+
+    <div class="pay-amount-block">
+      <div class="pay-label">Send exactly</div>
+      <div class="pay-amount-row">
+        <div class="pay-amount">{{ invoice.amount_native }} <span class="pay-token">{{ invoice.token }}</span></div>
+        <button class="copy-btn" data-copy="{{ invoice.amount_native }}" title="Copy amount">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+      {% if invoice.amount_usd %}
+      <div class="pay-usd">≈ ${{ "%.2f"|format(invoice.amount_usd) }} USD</div>
+      {% endif %}
+    </div>
+
+    <div class="pay-address-block">
+      <div class="pay-label">To this address</div>
+      <div class="pay-address-row">
+        <div class="pay-address mono">{{ invoice.deposit_address }}</div>
+        <button class="copy-btn" data-copy="{{ invoice.deposit_address }}" title="Copy address">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="pay-qr-wrap">
+      <div class="qr-frame">
+        <div id="qrcode"></div>
+      </div>
+    </div>
+
+    <div class="pay-status-bar" id="statusBar">
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-text" id="statusText">Waiting for payment…</div>
+    </div>
+
+    <div class="pay-network-note mono">
+      Network: {{ invoice.chain }} &nbsp;·&nbsp; Expires at {{ invoice.expires_at[:16].replace("T", " ") }} UTC
+    </div>
+  </div>
+</div>
+
+<div class="success-overlay" id="successOverlay" style="display:none">
+  <div class="success-card card">
+    <div class="success-ghost">
+      <svg viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".2"/>
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="14" cy="20" r="3" fill="currentColor"/>
+        <circle cx="26" cy="20" r="3" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="success-title">Payment Complete</div>
+    <div class="success-sub">Your transaction has been confirmed and funds forwarded.</div>
+    <div class="success-id mono">{{ invoice.id }}</div>
+  </div>
+</div>
+
+<script>
+const INVOICE_ID = "{{ invoice.id }}";
+const EXPIRES_AT = new Date("{{ invoice.expires_at }}");
+const DEPOSIT_ADDR = "{{ invoice.deposit_address }}";
+</script>
+<script src="{{ url_for('static', filename='js/qrcode.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pay.js') }}"></script>
+
+<style>
+.pay-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.pay-card { width: 100%; max-width: 480px; padding: 0; overflow: hidden; animation: fade-in .4s ease both; }
+.pay-header { display: flex; align-items: center; gap: 14px; padding: 24px 28px 20px; border-bottom: 1px solid var(--border); }
+.ghost-icon { color: var(--green); width: 38px; flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+.ghost-svg { width: 38px; height: 46px; }
+.pay-brand { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: var(--text); }
+.pay-countdown { font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--green); letter-spacing: .04em; margin-top: 2px; }
+.pay-countdown.urgent { color: var(--red); }
+.pay-chain-tabs { display: flex; padding: 16px 28px 0; gap: 8px; }
+.chain-tab { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .04em; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; transition: all .15s; }
+.chain-tab.active { background: var(--green-faint); border-color: var(--green); color: var(--green); }
+.chain-badge { text-transform: uppercase; }
+.pay-amount-block, .pay-address-block { padding: 20px 28px 0; }
+.pay-label { font-family: var(--font-mono); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--text-dim); margin-bottom: 8px; }
+.pay-amount-row, .pay-address-row { display: flex; align-items: center; gap: 10px; }
+.pay-amount { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -.03em; }
+.pay-token { color: var(--green); }
+.pay-usd { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.pay-address { font-size: 11px; color: var(--slate); word-break: break-all; line-height: 1.5; }
+.copy-btn { flex-shrink: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-dim); cursor: pointer; transition: all .15s; }
+.copy-btn:hover { border-color: var(--green); color: var(--green); }
+.copy-btn.copied { border-color: var(--green); color: var(--green); background: var(--green-faint); }
+.pay-qr-wrap { display: flex; justify-content: center; padding: 24px 28px; }
+.qr-frame { padding: 14px; background: #fff; border-radius: 10px; display: inline-block; }
+#qrcode canvas, #qrcode img { display: block; }
+.pay-status-bar { display: flex; align-items: center; gap: 10px; padding: 16px 28px; background: var(--surface2); border-top: 1px solid var(--border); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse-dot 2s ease-in-out infinite; }
+.status-dot.confirming { background: #4488ff; }
+.status-dot.sweeping { background: #bb44ff; }
+.status-dot.expired { background: var(--slate-dim); animation: none; }
+.status-text { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
+.pay-network-note { padding: 10px 28px 20px; font-size: 11px; color: var(--slate-dim); text-align: center; }
+.success-overlay { position: fixed; inset: 0; background: rgba(7,10,15,.9); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 24px; backdrop-filter: blur(10px); }
+.success-card { max-width: 360px; width: 100%; padding: 48px 36px; text-align: center; animation: success-glow 2s ease-in-out infinite; }
+.success-ghost { color: var(--green); width: 60px; margin: 0 auto 24px; animation: float 2.5s ease-in-out infinite; }
+.success-ghost svg { width: 60px; height: 72px; }
+.success-title { font-size: 26px; font-weight: 800; color: var(--green); letter-spacing: -.02em; margin-bottom: 10px; }
+.success-sub { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; line-height: 1.6; }
+.success-id { font-size: 11px; color: var(--slate-dim); }
+</style>
+{% endblock %}

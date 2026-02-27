@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Invoice Expired — GhostPayments{% endblock %}
+{% block body %}
+<div class="pay-wrap">
+  <div class="pay-card card" style="max-width:400px;padding:48px 36px;text-align:center;">
+    <div style="color:var(--slate-dim);width:60px;margin:0 auto 24px;">
+      <svg viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:60px;height:72px;opacity:.4;">
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".2"/>
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="14" cy="20" r="3" fill="currentColor"/>
+        <circle cx="26" cy="20" r="3" fill="currentColor"/>
+      </svg>
+    </div>
+    <div style="font-size:22px;font-weight:800;color:var(--text-dim);letter-spacing:-.02em;margin-bottom:10px;">Invoice Expired</div>
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px;line-height:1.6;">This payment request has expired. Please contact the merchant to generate a new invoice.</div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--slate-dim);">{{ invoice.id }}</div>
+  </div>
+</div>
+<style>
+.pay-wrap { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px; }
+.pay-card { border-radius:var(--radius); }
+</style>
+{% endblock %}

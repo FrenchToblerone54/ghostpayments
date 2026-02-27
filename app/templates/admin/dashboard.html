@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — GhostPayments{% endblock %}
+{% block body %}
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 40 48" fill="none" style="width:24px;height:29px;color:var(--green);">
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".2"/>
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="14" cy="20" r="3" fill="currentColor"/><circle cx="26" cy="20" r="3" fill="currentColor"/>
+      </svg>
+      <div class="sidebar-logo-text">Ghost<span>Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ ap }}/dashboard" class="active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="{{ ap }}/keys">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        API Keys
+      </a>
+      <a href="{{ ap }}/settings">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Payment overview and recent activity</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value">{{ stats.total }}</div></div>
+      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">{{ stats.completed }}</div></div>
+      <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value">{{ stats.pending }}</div></div>
+      <div class="stat-card"><div class="stat-label">Expired</div><div class="stat-value">{{ stats.expired }}</div></div>
+    </div>
+
+    {% if fee_balances %}
+    <div class="card" style="padding:20px 24px;margin-bottom:24px;">
+      <div style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:14px;">Fee Wallet Balances</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        {% for chain, info in fee_balances.items() %}
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-dim);margin-bottom:2px;">{{ chain }}</div>
+          <div style="font-family:var(--font-mono);font-size:15px;color:var(--text);">{{ "%.6f"|format(info.balance) }} <span style="color:var(--slate-dim);">{{ "BNB" if chain == "BSC" else "POL" }}</span></div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate-dim);margin-top:2px;">{{ info.address[:16] }}…</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card" style="overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;">Recent Invoices</div>
+      {% if invoices %}
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Chain</th><th>Token</th><th>Amount</th><th>Status</th><th>Created</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for inv in invoices %}
+            <tr>
+              <td class="mono" style="color:var(--text-dim);">{{ inv.id[:12] }}…</td>
+              <td><span class="badge badge-pending" style="background:transparent;border:none;color:var(--slate);padding:0;">{{ inv.chain }}</span></td>
+              <td class="mono">{{ inv.token }}</td>
+              <td class="mono">{{ inv.amount_native }}</td>
+              <td><span class="badge badge-{{ inv.status }}">{{ inv.status }}</span></td>
+              <td class="mono" style="color:var(--text-dim);font-size:11px;">{{ inv.created_at[:16].replace("T"," ") }}</td>
+              <td><a href="{{ ap }}/invoice/{{ inv.id }}" style="font-size:12px;">Detail →</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="padding:40px;text-align:center;color:var(--text-dim);font-size:13px;">No invoices yet.</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

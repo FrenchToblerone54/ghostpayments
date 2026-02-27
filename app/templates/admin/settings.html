@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Settings — GhostPayments{% endblock %}
+{% block body %}
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 40 48" fill="none" style="width:24px;height:29px;color:var(--green);">
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".2"/>
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="14" cy="20" r="3" fill="currentColor"/><circle cx="26" cy="20" r="3" fill="currentColor"/>
+      </svg>
+      <div class="sidebar-logo-text">Ghost<span>Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ ap }}/dashboard">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="{{ ap }}/keys">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        API Keys
+      </a>
+      <a href="{{ ap }}/settings" class="active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Settings</h1>
+      <p>Configure paths, wallets, RPC endpoints and tuning</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="flash flash-{{ cat }}">
+      {% if cat == "restart" %}⚠ {{ msg }}{% else %}{{ msg }}{% endif %}
+    </div>
+    {% endfor %}
+    {% endwith %}
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('paths')">URI Paths</button>
+      <button class="tab-btn" onclick="switchTab('wallets')">Wallets &amp; RPC</button>
+      <button class="tab-btn" onclick="switchTab('tuning')">Tuning</button>
+    </div>
+
+    <div id="tab-paths" class="tab-pane active">
+      <div class="card" style="padding:28px;max-width:600px;">
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;line-height:1.6;">
+          Secret URI prefixes protect admin and payment routes. Leave empty to serve from root <code style="font-family:var(--font-mono);font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;">/</code> (disables path security).
+        </p>
+        <form method="post" action="{{ ap }}/settings/paths">
+          <div class="form-group">
+            <label>Admin Path</label>
+            <div class="input-group">
+              <input type="text" id="adminPathInput" name="admin_path" value="" placeholder="Leave blank for root access or enter new path">
+              <button type="button" class="reveal-btn" onclick="toggleReveal('adminPathInput', '{{ admin_path_val }}')">Reveal</button>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate-dim);margin-top:4px;">Current: {{ admin_path_val[:4] ~ "…" ~ admin_path_val[-4:] if admin_path_val else "(root)" }}</div>
+          </div>
+          <div class="form-group">
+            <label>Payment Path</label>
+            <div class="input-group">
+              <input type="text" id="payPathInput" name="payment_path" value="" placeholder="Leave blank for root access or enter new path">
+              <button type="button" class="reveal-btn" onclick="toggleReveal('payPathInput', '{{ payment_path_val }}')">Reveal</button>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate-dim);margin-top:4px;">Current: {{ payment_path_val[:4] ~ "…" ~ payment_path_val[-4:] if payment_path_val else "(root)" }}</div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Paths</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="tab-wallets" class="tab-pane">
+      <div class="card" style="padding:28px;max-width:600px;">
+        <form method="post" action="{{ ap }}/settings/wallets">
+          <div class="form-group">
+            <label>Main Wallet Mnemonic</label>
+            <input type="password" name="MAIN_MNEMONIC" placeholder="Enter new value to change (write-only)">
+          </div>
+          <div class="form-group">
+            <label>Main Wallet Address</label>
+            <input type="text" name="MAIN_WALLET_ADDRESS" value="{{ main_wallet }}" placeholder="0x… (blank = auto-derive from Main Mnemonic index 0)">
+            <div style="font-size:11px;color:var(--slate-dim);margin-top:4px;">Leave blank to automatically use Main Mnemonic index 0 as destination.</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-dim);margin-bottom:16px;">Fee Wallet — choose one</div>
+            <div class="form-group">
+              <label>Fee Mnemonic (Option A)</label>
+              <input type="password" name="FEE_MNEMONIC" placeholder="Enter new mnemonic to change">
+            </div>
+            <div class="form-group">
+              <label>Fee Private Key (Option B — takes precedence)</label>
+              <input type="password" name="FEE_PRIVATE_KEY" placeholder="0x… private key (takes precedence over mnemonic)">
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px;">
+            <div class="form-group">
+              <label>BSC RPC URL</label>
+              <div class="input-group">
+                <input type="url" name="BSC_RPC_URL" id="bscRpc" value="{{ bsc_rpc }}">
+                <button type="button" class="reveal-btn" onclick="testRpc('BSC', 'bscRpc', 'bscResult')">Test</button>
+              </div>
+              <div id="bscResult" style="font-family:var(--font-mono);font-size:11px;margin-top:4px;"></div>
+            </div>
+            <div class="form-group">
+              <label>Polygon RPC URL</label>
+              <div class="input-group">
+                <input type="url" name="POLYGON_RPC_URL" id="polRpc" value="{{ pol_rpc }}">
+                <button type="button" class="reveal-btn" onclick="testRpc('POLYGON', 'polRpc', 'polResult')">Test</button>
+              </div>
+              <div id="polResult" style="font-family:var(--font-mono);font-size:11px;margin-top:4px;"></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Wallets</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="tab-tuning" class="tab-pane">
+      <div class="card" style="padding:28px;max-width:600px;">
+        <form method="post" action="{{ ap }}/settings/tuning">
+          <div class="form-row">
+            <div class="form-group"><label>Invoice TTL (minutes)</label><input type="number" name="INVOICE_TTL_MINUTES" value="{{ invoice_ttl }}" min="1" max="1440"></div>
+            <div class="form-group"><label>Poll Interval (seconds)</label><input type="number" name="POLL_INTERVAL_SECONDS" value="{{ poll_interval }}" min="5" max="3600"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>BSC Confirmations</label><input type="number" name="BSC_CONFIRMATIONS" value="{{ bsc_confs }}" min="1" max="100"></div>
+            <div class="form-group"><label>Polygon Confirmations</label><input type="number" name="POLYGON_CONFIRMATIONS" value="{{ pol_confs }}" min="1" max="100"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Gas Buffer %</label><input type="number" name="GAS_BUFFER_PERCENT" value="{{ gas_buffer }}" min="0" max="100"></div>
+            <div class="form-group"><label>Update Check Interval (s)</label><input type="number" name="UPDATE_CHECK_INTERVAL" value="{{ update_interval }}" min="60" max="86400"></div>
+          </div>
+          <div class="form-group">
+            <label>Auto-Update</label>
+            <select name="AUTO_UPDATE">
+              <option value="true" {{ "selected" if auto_update else "" }}>Enabled</option>
+              <option value="false" {{ "selected" if not auto_update else "" }}>Disabled</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Tuning</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll(".tab-pane").forEach(function(p) { p.classList.remove("active"); });
+  document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+  document.getElementById("tab-" + name).classList.add("active");
+  event.target.classList.add("active");
+}
+function toggleReveal(inputId, value) {
+  var el = document.getElementById(inputId);
+  if (el.type === "password") { el.type = "text"; el.value = value; event.target.textContent = "Hide"; }
+  else { el.type = "password"; el.value = ""; event.target.textContent = "Reveal"; }
+}
+function testRpc(chain, inputId, resultId) {
+  var url = document.getElementById(inputId).value;
+  var res = document.getElementById(resultId);
+  res.textContent = "Testing…";
+  res.style.color = "var(--text-dim)";
+  var fd = new FormData();
+  fd.append("chain", chain);
+  fd.append("url", url);
+  fetch("{{ ap }}/settings/test-rpc", {method:"POST", body:fd})
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.ok) { res.textContent = "✓ Block " + d.block; res.style.color = "var(--green)"; }
+      else { res.textContent = "✗ " + d.error; res.style.color = "var(--red)"; }
+    })
+    .catch(function() { res.textContent = "✗ Request failed"; res.style.color = "var(--red)"; });
+}
+</script>
+{% endblock %}

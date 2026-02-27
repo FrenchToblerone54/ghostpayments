@@ -1,0 +1,41 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 0.1.0 or v0.1.0)"
+        required: true
+        type: string
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Normalize version
+        id: ver
+        run: |
+          ver="${{ inputs.version }}"
+          ver="${ver#v}"
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Patch version into updater.py
+        run: sed -i "s/return \"v0.1.0\"/return \"v${{ steps.ver.outputs.version }}\"/" updater.py
+      - name: Build
+        run: bash build/build.sh
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ steps.ver.outputs.version }}
+          name: v${{ steps.ver.outputs.version }}
+          artifacts: dist/ghostpayments,dist/ghostpayments.sha256
+          allowUpdates: true
+          generateReleaseNotes: true

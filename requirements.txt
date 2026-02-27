@@ -1,0 +1,13 @@
+Flask>=3.0
+waitress>=3.0
+web3>=7.0
+eth-account>=0.12
+mnemonic>=0.21
+bip-utils>=2.9
+APScheduler>=3.10
+aiohttp>=3.9
+python-dotenv>=1.0
+nanoid>=2.0
+requests>=2.31
+PyInstaller>=6.0
+pytest>=8.0
