@@ -11,7 +11,7 @@ def create_app():
     from app.routes.api import api_bp
     from app.routes.payment import make_payment_bp
     from app.routes.admin import make_admin_bp
-    app.register_blueprint(api_bp)
+    app.register_blueprint(api_bp, url_prefix=payment_prefix)
     app.register_blueprint(make_payment_bp(payment_prefix))
     app.register_blueprint(make_admin_bp(admin_prefix))
     from app.services.monitor import start_monitor
