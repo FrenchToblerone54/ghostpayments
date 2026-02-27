@@ -31,14 +31,14 @@ class Updater:
             return self.http_proxy
         return None
 
-    async def http_get(self, url, timeout=30):
+    async def http_get(self, url, timeout=10):
         proxy = self._proxy_for(url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url, proxy=proxy, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
                 resp.raise_for_status()
                 return await resp.json()
 
-    async def http_download(self, url, output_path, timeout=120):
+    async def http_download(self, url, output_path, timeout=300):
         proxy = self._proxy_for(url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url, proxy=proxy, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
@@ -76,8 +76,8 @@ class Updater:
         binary_path = tmp_dir / COMPONENT
         sha_path = tmp_dir / f"{COMPONENT}.sha256"
         print(f"Downloading {new_version}...")
-        await self.http_download(self.binary_url, binary_path)
-        await self.http_download(f"{self.binary_url}.sha256", sha_path)
+        await self.http_download(self.binary_url, binary_path, 300)
+        await self.http_download(f"{self.binary_url}.sha256", sha_path, 30)
         expected = sha_path.read_text().strip()
         if not self.verify_checksum(binary_path, expected):
             print("Checksum mismatch — aborting update")

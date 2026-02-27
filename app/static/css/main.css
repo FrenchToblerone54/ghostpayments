@@ -180,6 +180,8 @@ label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform
 .sidebar-nav a:hover { color: var(--text); background: var(--surface); opacity: 1; }
 .sidebar-nav a.active { color: var(--green); background: var(--green-faint); border-left-color: var(--green); }
 
+.sidebar-version { padding: 12px 20px; font-family: var(--font-mono); font-size: 11px; color: var(--slate-dim); border-top: 1px solid var(--border); margin-top: auto; }
+
 .main-content { flex: 1; padding: 32px; overflow: auto; max-width: calc(100vw - 220px); }
 
 .page-header { margin-bottom: 28px; }
@@ -255,6 +257,7 @@ tr:hover td { background: var(--surface2); }
     text-align: center;
   }
   .sidebar-nav a.active { border-left-color: transparent; border-top-color: var(--green); }
+  .sidebar-version { display: none; }
   .sidebar-nav a svg { width: 16px; height: 16px; }
   .main-content { padding: 16px; max-width: 100vw; }
   .page-header h1 { font-size: 18px; }

@@ -16,9 +16,11 @@ def create_app():
     app.register_blueprint(make_admin_bp(admin_prefix))
     from app.services.monitor import start_monitor
     start_monitor(app)
+    from updater import Updater
+    _version = Updater().current_version
     @app.context_processor
     def inject_prefixes():
-        return {"ap": admin_prefix, "pp": payment_prefix}
+        return {"ap": admin_prefix, "pp": payment_prefix, "version": _version}
     @app.teardown_appcontext
     def close_db(e=None):
         from flask import g
