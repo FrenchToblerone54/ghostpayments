@@ -207,6 +207,8 @@ tr:hover td { background: var(--surface2); }
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
 
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
 .form-group { margin-bottom: 18px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .input-group { display: flex; gap: 8px; align-items: flex-end; }
@@ -214,6 +216,71 @@ tr:hover td { background: var(--surface2); }
 
 .reveal-btn { font-family: var(--font-mono); font-size: 11px; padding: 9px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-dim); cursor: pointer; white-space: nowrap; transition: all .15s; }
 .reveal-btn:hover { border-color: var(--green); color: var(--green); }
+
+@media (max-width: 768px) {
+  .admin-layout { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo {
+    padding: 14px 16px;
+    border-bottom: none;
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    border-top: 1px solid var(--border);
+    flex: none;
+  }
+  .sidebar-nav a {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 11px;
+    border-left: none;
+    border-top: 2px solid transparent;
+    gap: 4px;
+    flex-direction: column;
+    text-align: center;
+  }
+  .sidebar-nav a.active { border-left-color: transparent; border-top-color: var(--green); }
+  .sidebar-nav a svg { width: 16px; height: 16px; }
+  .main-content { padding: 16px; max-width: 100vw; }
+  .page-header h1 { font-size: 18px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card { padding: 14px; }
+  .stat-card .stat-value { font-size: 22px; }
+  .form-row { grid-template-columns: 1fr; gap: 0; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 8px; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .page-header[style*="justify-content:space-between"] { flex-direction: column; align-items: flex-start !important; gap: 8px; }
+  .tab-btn { padding: 8px 12px; font-size: 12px; }
+  .card[style*="max-width:600px"] { max-width: 100% !important; }
+  .pay-card { max-width: 100%; }
+  .pay-header { padding: 16px 18px 14px; }
+  .pay-amount-block, .pay-address-block { padding: 14px 18px 0; }
+  .pay-amount { font-size: 26px; }
+  .pay-chain-tabs { padding: 12px 18px 0; }
+  .pay-qr-wrap { padding: 18px; }
+  .pay-status-bar { padding: 12px 18px; }
+  .pay-network-note { padding: 8px 18px 16px; }
+  .success-card { padding: 36px 24px; }
+  .input-group { flex-direction: column; }
+  .input-group input { width: 100%; }
+  .reveal-btn { width: 100%; }
+}
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }

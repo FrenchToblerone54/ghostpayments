@@ -36,7 +36,7 @@
       <span class="badge badge-{{ invoice.status }}">{{ invoice.status }}</span>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div class="detail-grid">
       <div class="card" style="padding:24px;">
         <div style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:16px;">Invoice Details</div>
         {% set rows = [

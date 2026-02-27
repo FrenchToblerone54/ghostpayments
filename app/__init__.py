@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, request
 from app.config import Config
 from app.db import init_db
 
@@ -25,4 +25,28 @@ def create_app():
         db = g.pop("db", None)
         if db is not None:
             db.close()
+    _errors = {
+        400: ("Bad Request", "The server could not understand your request."),
+        404: ("Not Found", "This page doesn't exist or has moved."),
+        405: ("Method Not Allowed", "That HTTP method isn't allowed here."),
+        500: ("Server Error", "Something went wrong on our end."),
+    }
+    def _on_known_path():
+        path = request.path
+        if not admin_prefix and not payment_prefix:
+            return True
+        if admin_prefix and path.startswith(admin_prefix):
+            return True
+        if payment_prefix and path.startswith(payment_prefix):
+            return True
+        return False
+    def _err(code):
+        if not _on_known_path():
+            return ("", 404)
+        title, desc = _errors[code]
+        return render_template("error.html", code=code, title=title, desc=desc), code
+    app.register_error_handler(400, lambda e: _err(400))
+    app.register_error_handler(404, lambda e: _err(404))
+    app.register_error_handler(405, lambda e: _err(405))
+    app.register_error_handler(500, lambda e: _err(500))
     return app

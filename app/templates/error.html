@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} — GhostPayments{% endblock %}
+{% block body %}
+<div class="err-wrap">
+  <div class="err-card card">
+    <div class="err-ghost">
+      <svg viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".15"/>
+        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="14" cy="20" r="3" fill="currentColor"/>
+        <circle cx="26" cy="20" r="3" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="err-code">{{ code }}</div>
+    <div class="err-title">{{ title }}</div>
+    <div class="err-desc">{{ desc }}</div>
+  </div>
+</div>
+<style>
+.err-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+.err-card { max-width:380px; width:100%; padding:48px 36px; text-align:center; animation:fade-in .4s ease both; }
+.err-ghost { color:var(--slate-dim); width:56px; margin:0 auto 24px; opacity:.5; }
+.err-ghost svg { width:56px; height:67px; }
+.err-code { font-family:var(--font-mono); font-size:56px; font-weight:500; color:var(--border); letter-spacing:-.02em; line-height:1; margin-bottom:12px; }
+.err-title { font-size:18px; font-weight:800; color:var(--text); letter-spacing:-.02em; margin-bottom:10px; }
+.err-desc { font-size:13px; color:var(--text-dim); line-height:1.6; }
+</style>
+{% endblock %}
