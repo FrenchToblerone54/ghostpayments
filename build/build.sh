@@ -5,6 +5,10 @@ cd "$(dirname "$0")/.."
 python3.13 -m PyInstaller \
     --onefile \
     --name ghostpayments \
+    --collect-all coincurve \
+    --collect-all cffi \
+    --hidden-import coincurve._cffi_backend \
+    --hidden-import _cffi_backend \
     --add-data "app/static:app/static" \
     --add-data "app/templates:app/templates" \
     run.py
