@@ -457,7 +457,7 @@ sudo journalctl -u ghostpayments -f
 ```bash
 git clone https://github.com/FrenchToblerone54/ghostpayments
 cd ghostpayments
-python3.11 -m venv venv
+python3.13 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
