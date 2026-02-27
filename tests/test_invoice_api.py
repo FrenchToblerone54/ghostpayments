@@ -30,7 +30,7 @@ def api_key(app):
     return plaintext
 
 def test_create_invoice(client, api_key):
-    resp = client.post("/api/invoice", json={"chain": "BSC", "token": "USDT", "amount_native": "10.00"}, headers={"X-GhostPay-Key": api_key})
+    resp = client.post("/testpay/api/invoice", json={"chain": "BSC", "token": "USDT", "amount_native": "10.00"}, headers={"X-GhostPay-Key": api_key})
     assert resp.status_code == 201
     data = resp.get_json()
     assert "invoice_id" in data
@@ -40,41 +40,41 @@ def test_create_invoice(client, api_key):
     assert data["deposit_address"].startswith("0x")
 
 def test_get_invoice(client, api_key):
-    resp = client.post("/api/invoice", json={"chain": "POLYGON", "token": "USDT", "amount_native": "5.00"}, headers={"X-GhostPay-Key": api_key})
+    resp = client.post("/testpay/api/invoice", json={"chain": "POLYGON", "token": "USDT", "amount_native": "5.00"}, headers={"X-GhostPay-Key": api_key})
     invoice_id = resp.get_json()["invoice_id"]
-    resp2 = client.get(f"/api/invoice/{invoice_id}")
+    resp2 = client.get(f"/testpay/api/invoice/{invoice_id}")
     assert resp2.status_code == 200
     data = resp2.get_json()
     assert data["id"] == invoice_id
     assert data["status"] == "pending"
 
 def test_get_invoice_not_found(client):
-    resp = client.get("/api/invoice/nonexistent123456789")
+    resp = client.get("/testpay/api/invoice/nonexistent123456789")
     assert resp.status_code == 404
 
 def test_cancel_invoice(client, api_key):
-    resp = client.post("/api/invoice", json={"chain": "BSC", "token": "BNB", "amount_native": "0.01"}, headers={"X-GhostPay-Key": api_key})
+    resp = client.post("/testpay/api/invoice", json={"chain": "BSC", "token": "BNB", "amount_native": "0.01"}, headers={"X-GhostPay-Key": api_key})
     invoice_id = resp.get_json()["invoice_id"]
-    cancel_resp = client.post(f"/api/invoice/{invoice_id}/cancel", headers={"X-GhostPay-Key": api_key})
+    cancel_resp = client.post(f"/testpay/api/invoice/{invoice_id}/cancel", headers={"X-GhostPay-Key": api_key})
     assert cancel_resp.status_code == 200
-    status_resp = client.get(f"/api/invoice/{invoice_id}")
+    status_resp = client.get(f"/testpay/api/invoice/{invoice_id}")
     assert status_resp.get_json()["status"] == "expired"
 
 def test_list_invoices(client, api_key):
-    resp = client.get("/api/invoices", headers={"X-GhostPay-Key": api_key})
+    resp = client.get("/testpay/api/invoices", headers={"X-GhostPay-Key": api_key})
     assert resp.status_code == 200
     data = resp.get_json()
     assert "invoices" in data
     assert isinstance(data["invoices"], list)
 
 def test_invalid_chain_rejected(client, api_key):
-    resp = client.post("/api/invoice", json={"chain": "ETHEREUM", "token": "USDT", "amount_native": "1.00"}, headers={"X-GhostPay-Key": api_key})
+    resp = client.post("/testpay/api/invoice", json={"chain": "ETHEREUM", "token": "USDT", "amount_native": "1.00"}, headers={"X-GhostPay-Key": api_key})
     assert resp.status_code == 400
 
 def test_missing_api_key_rejected(client):
-    resp = client.post("/api/invoice", json={"chain": "BSC", "token": "USDT", "amount_native": "1.00"})
+    resp = client.post("/testpay/api/invoice", json={"chain": "BSC", "token": "USDT", "amount_native": "1.00"})
     assert resp.status_code == 401
 
 def test_invalid_api_key_rejected(client):
-    resp = client.post("/api/invoice", json={"chain": "BSC", "token": "USDT", "amount_native": "1.00"}, headers={"X-GhostPay-Key": "gp_invalid"})
+    resp = client.post("/testpay/api/invoice", json={"chain": "BSC", "token": "USDT", "amount_native": "1.00"}, headers={"X-GhostPay-Key": "gp_invalid"})
     assert resp.status_code == 401

@@ -21,7 +21,7 @@ class Updater:
     def _get_current_version(self):
         script_path = Path(sys.argv[0])
         if script_path.name == COMPONENT:
-            return "v0.1.1"
+            return "v0.1.7"
         return "dev"
 
     def _proxy_for(self, url):
