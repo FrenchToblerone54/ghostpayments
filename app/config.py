@@ -23,3 +23,4 @@ class Config:
     UPDATE_HTTP_PROXY = os.getenv("UPDATE_HTTP_PROXY", "")
     UPDATE_HTTPS_PROXY = os.getenv("UPDATE_HTTPS_PROXY", "")
     ENV_PATH = os.getenv("ENV_PATH", "/etc/ghostpayments/.env")
+    WAITRESS_THREADS = int(os.getenv("WAITRESS_THREADS", 8))

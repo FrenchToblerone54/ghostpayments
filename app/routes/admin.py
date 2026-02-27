@@ -86,7 +86,10 @@ def make_admin_bp(url_prefix):
             pol_rpc=cfg["POLYGON_RPC_URL"], invoice_ttl=cfg["INVOICE_TTL_MINUTES"],
             bsc_confs=cfg["BSC_CONFIRMATIONS"], pol_confs=cfg["POLYGON_CONFIRMATIONS"],
             gas_buffer=cfg["GAS_BUFFER_PERCENT"], poll_interval=cfg["POLL_INTERVAL_SECONDS"],
-            auto_update=cfg["AUTO_UPDATE"], update_interval=cfg["UPDATE_CHECK_INTERVAL"])
+            auto_update=cfg["AUTO_UPDATE"], update_interval=cfg["UPDATE_CHECK_INTERVAL"],
+            waitress_threads=cfg["WAITRESS_THREADS"],
+            update_on_startup=cfg["UPDATE_CHECK_ON_STARTUP"],
+            http_proxy=cfg["UPDATE_HTTP_PROXY"], https_proxy=cfg["UPDATE_HTTPS_PROXY"])
 
     @admin_bp.route("/settings/paths", methods=["POST"])
     def save_paths():
@@ -136,7 +139,8 @@ def make_admin_bp(url_prefix):
         updates = {}
         int_fields = {"INVOICE_TTL_MINUTES": (1, 1440), "BSC_CONFIRMATIONS": (1, 100),
             "POLYGON_CONFIRMATIONS": (1, 100), "GAS_BUFFER_PERCENT": (0, 100),
-            "POLL_INTERVAL_SECONDS": (5, 3600), "UPDATE_CHECK_INTERVAL": (60, 86400)}
+            "POLL_INTERVAL_SECONDS": (5, 3600), "UPDATE_CHECK_INTERVAL": (60, 86400),
+            "WAITRESS_THREADS": (2, 256)}
         for key, (mn, mx) in int_fields.items():
             val = request.form.get(key, "").strip()
             if val:
@@ -148,9 +152,13 @@ def make_admin_bp(url_prefix):
                     pass
         auto_update = request.form.get("AUTO_UPDATE", "false")
         updates["AUTO_UPDATE"] = "true" if auto_update == "true" else "false"
+        update_on_startup = request.form.get("UPDATE_CHECK_ON_STARTUP", "false")
+        updates["UPDATE_CHECK_ON_STARTUP"] = "true" if update_on_startup == "true" else "false"
+        for field in ("UPDATE_HTTP_PROXY", "UPDATE_HTTPS_PROXY"):
+            updates[field] = request.form.get(field, "").strip()
         if updates:
             write_env(updates)
-            flash("Tuning saved.", "success")
+            flash("Tuning saved. Restart required for thread count changes.", "success")
         return redirect(url_prefix + "/settings")
 
     @admin_bp.route("/settings/test-rpc", methods=["POST"])
@@ -166,5 +174,44 @@ def make_admin_bp(url_prefix):
             return jsonify({"ok": True, "block": block})
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)})
+
+    @admin_bp.route("/system/update-check")
+    def system_update_check():
+        import asyncio
+        from updater import Updater
+        updater = Updater()
+        loop = asyncio.new_event_loop()
+        try:
+            latest = loop.run_until_complete(updater.check_for_update())
+        finally:
+            loop.close()
+        return jsonify({"current": updater.current_version, "latest": latest, "update_available": bool(latest)})
+
+    @admin_bp.route("/system/update-apply", methods=["POST"])
+    def system_update_apply():
+        import asyncio, threading
+        from updater import Updater
+        updater = Updater(
+            http_proxy=current_app.config["UPDATE_HTTP_PROXY"],
+            https_proxy=current_app.config["UPDATE_HTTPS_PROXY"],
+        )
+        def _do():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            latest = loop.run_until_complete(updater.check_for_update())
+            if latest:
+                loop.run_until_complete(updater.download_update(latest))
+        threading.Thread(target=_do, daemon=True).start()
+        return jsonify({"ok": True, "message": "Update downloading, service will restart automatically."})
+
+    @admin_bp.route("/system/restart", methods=["POST"])
+    def system_restart():
+        import os, signal, threading
+        def _do():
+            import time
+            time.sleep(0.3)
+            os.kill(os.getpid(), signal.SIGTERM)
+        threading.Thread(target=_do, daemon=True).start()
+        return jsonify({"ok": True})
 
     return admin_bp

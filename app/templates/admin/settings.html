@@ -45,6 +45,7 @@
       <button class="tab-btn active" onclick="switchTab('paths')">URI Paths</button>
       <button class="tab-btn" onclick="switchTab('wallets')">Wallets &amp; RPC</button>
       <button class="tab-btn" onclick="switchTab('tuning')">Tuning</button>
+      <button class="tab-btn" onclick="switchTab('system')">System</button>
     </div>
 
     <div id="tab-paths" class="tab-pane active">
@@ -133,17 +134,51 @@
           </div>
           <div class="form-row">
             <div class="form-group"><label>Gas Buffer %</label><input type="number" name="GAS_BUFFER_PERCENT" value="{{ gas_buffer }}" min="0" max="100"></div>
-            <div class="form-group"><label>Update Check Interval (s)</label><input type="number" name="UPDATE_CHECK_INTERVAL" value="{{ update_interval }}" min="60" max="86400"></div>
+            <div class="form-group"><label>Waitress Threads</label><input type="number" name="WAITRESS_THREADS" value="{{ waitress_threads }}" min="2" max="256"><div style="font-size:11px;color:var(--slate-dim);margin-top:4px;">Restart required to apply.</div></div>
           </div>
-          <div class="form-group">
-            <label>Auto-Update</label>
-            <select name="AUTO_UPDATE">
-              <option value="true" {{ "selected" if auto_update else "" }}>Enabled</option>
-              <option value="false" {{ "selected" if not auto_update else "" }}>Disabled</option>
-            </select>
+          <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-dim);margin-bottom:16px;">Auto-Update</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Auto-Update</label>
+                <select name="AUTO_UPDATE">
+                  <option value="true" {{ "selected" if auto_update else "" }}>Enabled</option>
+                  <option value="false" {{ "selected" if not auto_update else "" }}>Disabled</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Check on Startup</label>
+                <select name="UPDATE_CHECK_ON_STARTUP">
+                  <option value="true" {{ "selected" if update_on_startup else "" }}>Enabled</option>
+                  <option value="false" {{ "selected" if not update_on_startup else "" }}>Disabled</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Update Check Interval (s)</label><input type="number" name="UPDATE_CHECK_INTERVAL" value="{{ update_interval }}" min="60" max="86400"></div>
+              <div></div>
+            </div>
+            <div class="form-group"><label>HTTP Proxy</label><input type="text" name="UPDATE_HTTP_PROXY" value="{{ http_proxy }}" placeholder="http://proxy:port or blank"></div>
+            <div class="form-group"><label>HTTPS Proxy</label><input type="text" name="UPDATE_HTTPS_PROXY" value="{{ https_proxy }}" placeholder="http://proxy:port or blank"></div>
           </div>
           <button type="submit" class="btn btn-primary">Save Tuning</button>
         </form>
+      </div>
+    </div>
+
+    <div id="tab-system" class="tab-pane">
+      <div class="card" style="padding:28px;max-width:600px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-dim);margin-bottom:16px;">Updates</div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
+          <button class="btn btn-ghost" onclick="checkUpdate()">Check for Update</button>
+          <button class="btn btn-primary" id="applyBtn" style="display:none;" onclick="applyUpdate()">Apply Update</button>
+          <span id="updateStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);"></span>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-dim);margin-bottom:16px;">Service</div>
+          <button class="btn btn-danger" onclick="restartService()">Restart Service</button>
+          <span id="restartStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);margin-left:12px;"></span>
+        </div>
       </div>
     </div>
   </main>
@@ -164,7 +199,7 @@ function toggleReveal(inputId, value) {
 function testRpc(chain, inputId, resultId) {
   var url = document.getElementById(inputId).value;
   var res = document.getElementById(resultId);
-  res.textContent = "Testing…";
+  res.textContent = "Testing\u2026";
   res.style.color = "var(--text-dim)";
   var fd = new FormData();
   fd.append("chain", chain);
@@ -172,10 +207,51 @@ function testRpc(chain, inputId, resultId) {
   fetch("{{ ap }}/settings/test-rpc", {method:"POST", body:fd})
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      if (d.ok) { res.textContent = "✓ Block " + d.block; res.style.color = "var(--green)"; }
-      else { res.textContent = "✗ " + d.error; res.style.color = "var(--red)"; }
+      if (d.ok) { res.textContent = "\u2713 Block " + d.block; res.style.color = "var(--green)"; }
+      else { res.textContent = "\u2717 " + d.error; res.style.color = "var(--red)"; }
     })
-    .catch(function() { res.textContent = "✗ Request failed"; res.style.color = "var(--red)"; });
+    .catch(function() { res.textContent = "\u2717 Request failed"; res.style.color = "var(--red)"; });
+}
+function checkUpdate() {
+  var st = document.getElementById("updateStatus");
+  var btn = document.getElementById("applyBtn");
+  st.textContent = "Checking\u2026";
+  st.style.color = "var(--text-dim)";
+  btn.style.display = "none";
+  fetch("{{ ap }}/system/update-check")
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.update_available) {
+        st.textContent = "Update available: " + d.current + " \u2192 " + d.latest;
+        st.style.color = "var(--amber)";
+        btn.style.display = "";
+      } else {
+        st.textContent = "Up to date (" + d.current + ")";
+        st.style.color = "var(--green)";
+      }
+    })
+    .catch(function() { st.textContent = "Check failed"; st.style.color = "var(--red)"; });
+}
+function applyUpdate() {
+  var st = document.getElementById("updateStatus");
+  st.textContent = "Downloading\u2026 service will restart automatically.";
+  st.style.color = "var(--text-dim)";
+  document.getElementById("applyBtn").style.display = "none";
+  fetch("{{ ap }}/system/update-apply", {method:"POST"}).catch(function() {});
+}
+function restartService() {
+  var st = document.getElementById("restartStatus");
+  st.textContent = "Restarting\u2026";
+  st.style.color = "var(--text-dim)";
+  fetch("{{ ap }}/system/restart", {method:"POST"})
+    .then(function() {
+      st.textContent = "Restarting, reconnecting\u2026";
+      st.style.color = "var(--amber)";
+      setTimeout(function() { location.reload(); }, 3000);
+    })
+    .catch(function() {
+      setTimeout(function() { location.reload(); }, 3000);
+    });
 }
 </script>
 {% endblock %}

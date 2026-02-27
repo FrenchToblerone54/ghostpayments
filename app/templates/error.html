@@ -1,28 +1,33 @@
-{% extends "base.html" %}
-{% block title %}{{ code }} — GhostPayments{% endblock %}
-{% block body %}
-<div class="err-wrap">
-  <div class="err-card card">
-    <div class="err-ghost">
-      <svg viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".15"/>
-        <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-        <circle cx="14" cy="20" r="3" fill="currentColor"/>
-        <circle cx="26" cy="20" r="3" fill="currentColor"/>
-      </svg>
-    </div>
-    <div class="err-code">{{ code }}</div>
-    <div class="err-title">{{ title }}</div>
-    <div class="err-desc">{{ desc }}</div>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ code }} — GhostPayments</title>
 <style>
-.err-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
-.err-card { max-width:380px; width:100%; padding:48px 36px; text-align:center; animation:fade-in .4s ease both; }
-.err-ghost { color:var(--slate-dim); width:56px; margin:0 auto 24px; opacity:.5; }
-.err-ghost svg { width:56px; height:67px; }
-.err-code { font-family:var(--font-mono); font-size:56px; font-weight:500; color:var(--border); letter-spacing:-.02em; line-height:1; margin-bottom:12px; }
-.err-title { font-size:18px; font-weight:800; color:var(--text); letter-spacing:-.02em; margin-bottom:10px; }
-.err-desc { font-size:13px; color:var(--text-dim); line-height:1.6; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#070a0f;color:#e8f0f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;}
+.card{background:#0f1923;border:1px solid #1a2d40;border-radius:12px;box-shadow:0 0 0 1px #00e87a18,0 20px 60px #00000080;max-width:380px;width:100%;padding:48px 36px;text-align:center;}
+.ghost{color:#4a6070;width:56px;margin:0 auto 24px;opacity:.5;}
+.ghost svg{width:56px;height:67px;}
+.code{font-family:monospace;font-size:56px;font-weight:500;color:#1a2d40;line-height:1;margin-bottom:12px;}
+.title{font-size:18px;font-weight:800;color:#e8f0f8;letter-spacing:-.02em;margin-bottom:10px;}
+.desc{font-size:13px;color:#7a9ab0;line-height:1.6;}
 </style>
-{% endblock %}
+</head>
+<body>
+<div class="card">
+  <div class="ghost">
+    <svg viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" fill="currentColor" opacity=".15"/>
+      <path d="M20 2C10.059 2 2 10.059 2 20v20l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4V20C38 10.059 29.941 2 20 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      <circle cx="14" cy="20" r="3" fill="currentColor"/>
+      <circle cx="26" cy="20" r="3" fill="currentColor"/>
+    </svg>
+  </div>
+  <div class="code">{{ code }}</div>
+  <div class="title">{{ title }}</div>
+  <div class="desc">{{ desc }}</div>
+</div>
+</body>
+</html>

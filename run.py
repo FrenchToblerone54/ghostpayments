@@ -47,7 +47,7 @@ def main():
             loop.run_until_complete(updater.update_loop(shutdown_event))
         threading.Thread(target=_run_update_loop, daemon=True).start()
     from waitress import serve
-    serve(app, host="0.0.0.0", port=int(os.getenv("PORT", 5000)), threads=8, channel_timeout=120)
+    serve(app, host="0.0.0.0", port=int(os.getenv("PORT", 5000)), threads=app.config["WAITRESS_THREADS"], channel_timeout=120)
 
 if __name__ == "__main__":
     main()

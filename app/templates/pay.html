@@ -84,6 +84,7 @@
 const INVOICE_ID = "{{ invoice.id }}";
 const EXPIRES_AT = new Date("{{ invoice.expires_at }}");
 const DEPOSIT_ADDR = "{{ invoice.deposit_address }}";
+const PP_BASE = "{{ pp }}";
 </script>
 <script src="{{ url_for('static', filename='js/qrcode.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pay.js') }}"></script>
