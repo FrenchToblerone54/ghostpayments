@@ -1,19 +1,11 @@
-import os
 import hashlib
+import sqlite3
 import json
 import pytest
-import tempfile
 from datetime import datetime, timezone
 
-os.environ.setdefault("DB_PATH", "/tmp/test-ghost.db")
-os.environ.setdefault("MAIN_MNEMONIC", "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about")
-os.environ.setdefault("ADMIN_PATH", "testadmin")
-os.environ.setdefault("PAYMENT_PATH", "testpay")
-os.environ.setdefault("MAIN_WALLET_ADDRESS", "0x0000000000000000000000000000000000000001")
-
-from app.db import init_db, open_db
+from app.db import init_db
 init_db()
-
 from app import create_app
 
 @pytest.fixture(scope="module")
@@ -28,14 +20,13 @@ def client(app):
 
 @pytest.fixture(scope="module")
 def api_key(app):
-    with app.app_context():
-        db = open_db()
-        plaintext = "gp_testkey12345678901234567890123456"
-        key_hash = hashlib.sha256(plaintext.encode()).hexdigest()
-        db.execute("INSERT OR REPLACE INTO api_keys (id, label, key_hash, key_prefix, is_active, created_at) VALUES ('testid','test',?,?,1,?)",
-            (key_hash, plaintext[:8], datetime.now(timezone.utc).isoformat()))
-        db.commit()
-        db.close()
+    plaintext = "gp_testkey12345678901234567890123456"
+    key_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    db = sqlite3.connect(app.config["DB_PATH"])
+    db.execute("INSERT OR REPLACE INTO api_keys (id, label, key_hash, key_prefix, is_active, created_at) VALUES ('testid','test',?,?,1,?)",
+        (key_hash, plaintext[:8], datetime.now(timezone.utc).isoformat()))
+    db.commit()
+    db.close()
     return plaintext
 
 def test_create_invoice(client, api_key):
@@ -47,7 +38,6 @@ def test_create_invoice(client, api_key):
     assert data["chain"] == "BSC"
     assert data["token"] == "USDT"
     assert data["deposit_address"].startswith("0x")
-    return data["invoice_id"]
 
 def test_get_invoice(client, api_key):
     resp = client.post("/api/invoice", json={"chain": "POLYGON", "token": "USDT", "amount_native": "5.00"}, headers={"X-GhostPay-Key": api_key})
