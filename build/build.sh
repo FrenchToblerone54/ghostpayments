@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 python3.13 -m PyInstaller \
     --onefile \
     --name ghostpayments \
+    --collect-all bip_utils \
     --collect-all coincurve \
     --collect-all cffi \
     --hidden-import coincurve._cffi_backend \
