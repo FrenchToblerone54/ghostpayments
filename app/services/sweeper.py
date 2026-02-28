@@ -46,7 +46,7 @@ def sweep_token(invoice):
     gas_tx_hash = None
     if native_balance < gas_cost_wei:
         deficit = gas_cost_wei - native_balance
-        gas_tx_hash = send_native(chain, fee_privkey, deposit_address, deficit)
+        gas_tx_hash = send_native(chain, fee_privkey, deposit_address, deficit, gas_price)
         wait_for_receipt(chain, gas_tx_hash)
     token_balance = get_token_balance(chain, deposit_address, invoice["token"])
     tx_out_hash = send_token(chain, deposit_privkey, invoice["token"], main_wallet, token_balance)
@@ -54,7 +54,7 @@ def sweep_token(invoice):
     leftover = get_native_balance(chain, deposit_address)
     refund_gas = int(21000 * gas_price * (1 + gas_buffer / 100))
     if leftover > refund_gas:
-        send_native(chain, deposit_privkey, fee_address, leftover - refund_gas)
+        send_native(chain, deposit_privkey, fee_address, leftover - refund_gas, gas_price)
     db = open_db()
     db.execute("UPDATE invoices SET status='completed', tx_out_hash=?, gas_tx_hash=?, completed_at=? WHERE id=?",
         (tx_out_hash, gas_tx_hash, _now(), invoice["id"]))
@@ -78,7 +78,7 @@ def sweep_native(invoice):
     sweep_amount = balance - gas_cost
     if sweep_amount <= 0:
         return
-    tx_out_hash = send_native(chain, deposit_privkey, main_wallet, sweep_amount)
+    tx_out_hash = send_native(chain, deposit_privkey, main_wallet, sweep_amount, gas_price)
     logger.info("Native sweep complete for invoice %s, tx=%s", invoice["id"], tx_out_hash)
     db = open_db()
     db.execute("UPDATE invoices SET status='completed', tx_out_hash=?, completed_at=? WHERE id=?",

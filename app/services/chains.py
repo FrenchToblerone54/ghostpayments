@@ -38,11 +38,12 @@ def get_block_number(chain):
 def get_gas_price(chain):
     return get_w3(chain).eth.gas_price
 
-def send_native(chain, from_privkey, to_address, value_wei):
+def send_native(chain, from_privkey, to_address, value_wei, gas_price=None):
     w3 = get_w3(chain)
     account = w3.eth.account.from_key(from_privkey)
     nonce = w3.eth.get_transaction_count(account.address)
-    gas_price = w3.eth.gas_price
+    if gas_price is None:
+        gas_price = w3.eth.gas_price
     tx = {"to": Web3.to_checksum_address(to_address), "value": value_wei, "gas": 21000, "gasPrice": gas_price, "nonce": nonce, "chainId": w3.eth.chain_id}
     signed = w3.eth.account.sign_transaction(tx, from_privkey)
     return w3.eth.send_raw_transaction(signed.raw_transaction).hex()
