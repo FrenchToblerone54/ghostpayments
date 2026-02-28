@@ -36,7 +36,7 @@ def sweep_token(invoice):
     main_mnemonic = os.getenv("MAIN_MNEMONIC", "")
     fee_mnemonic = os.getenv("FEE_MNEMONIC", "")
     main_wallet = _resolve_main_wallet()
-    gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", 20))
+    gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", 60))
     deposit_address, deposit_privkey = derive_address(main_mnemonic, invoice["hd_index"])
     fee_address, fee_privkey = get_fee_address(fee_mnemonic or None, chain)
     gas_units = estimate_token_transfer_gas(chain, invoice["token"])
@@ -69,7 +69,7 @@ def sweep_native(invoice):
     chain = invoice["chain"]
     main_mnemonic = os.getenv("MAIN_MNEMONIC", "")
     main_wallet = _resolve_main_wallet()
-    gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", 20))
+    gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", 60))
     _, deposit_privkey = derive_address(main_mnemonic, invoice["hd_index"])
     deposit_address = invoice["deposit_address"]
     gas_price = get_gas_price(chain)

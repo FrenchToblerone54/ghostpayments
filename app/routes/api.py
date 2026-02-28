@@ -52,7 +52,7 @@ def create_invoice():
         return jsonify({"error": "amount_native required"}), 400
     if token != "USDT":
         try:
-            gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", "20"))
+            gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", "60"))
             gas_price = get_gas_price(chain)
             gas_cost_wei = int(21000 * gas_price * (1 + gas_buffer / 100))
             amount_requested = str(Decimal(amount_native) + Decimal(gas_cost_wei) / Decimal(10**18))
