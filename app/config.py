@@ -14,7 +14,7 @@ class Config:
     INVOICE_TTL_MINUTES = int(os.getenv("INVOICE_TTL_MINUTES", 30))
     BSC_CONFIRMATIONS = int(os.getenv("BSC_CONFIRMATIONS", 3))
     POLYGON_CONFIRMATIONS = int(os.getenv("POLYGON_CONFIRMATIONS", 1))
-    GAS_BUFFER_PERCENT = int(os.getenv("GAS_BUFFER_PERCENT", 20))
+    GAS_BUFFER_PERCENT = int(os.getenv("GAS_BUFFER_PERCENT", 60))
     POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", 20))
     PORT = int(os.getenv("PORT", 5000))
     AUTO_UPDATE = os.getenv("AUTO_UPDATE", "true").lower() == "true"
