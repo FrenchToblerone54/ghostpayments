@@ -44,7 +44,7 @@
     var text = document.getElementById("statusText");
     dot.className = "status-dot";
     if (status === "confirming") { dot.classList.add("confirming"); text.textContent = "Transaction detected, confirming\u2026"; }
-    else if (status === "sweeping") { dot.classList.add("sweeping"); text.textContent = "Forwarding to main wallet\u2026"; }
+    else if (status === "sweeping") { dot.classList.add("confirming"); text.textContent = "Transaction detected, confirming\u2026"; }
     else if (status === "completed") {
       dot.style.background = "var(--green)";
       dot.style.animation = "none";
