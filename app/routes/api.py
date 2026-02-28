@@ -1,12 +1,14 @@
 import hashlib
 import os
 import json
+from decimal import Decimal
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 from flask import Blueprint, request, jsonify, current_app
 from nanoid import generate
 from app.db import get_db
 from app.services.wallet import derive_address
+from app.services.chains import get_gas_price
 
 api_bp = Blueprint("api", __name__)
 
@@ -48,6 +50,16 @@ def create_invoice():
         return jsonify({"error": "invalid token"}), 400
     if not amount_native:
         return jsonify({"error": "amount_native required"}), 400
+    if token != "USDT":
+        try:
+            gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", "20"))
+            gas_price = get_gas_price(chain)
+            gas_cost_wei = int(21000 * gas_price * (1 + gas_buffer / 100))
+            amount_requested = str(Decimal(amount_native) + Decimal(gas_cost_wei) / Decimal(10**18))
+        except Exception:
+            amount_requested = amount_native
+    else:
+        amount_requested = amount_native
     db = get_db()
     max_idx = db.execute("SELECT MAX(hd_index) FROM invoices").fetchone()[0]
     hd_index = (max_idx or 0) + 1
@@ -58,9 +70,9 @@ def create_invoice():
     now = datetime.now(timezone.utc)
     expires_at = (now + timedelta(minutes=ttl)).isoformat()
     db.execute("""INSERT INTO invoices
-        (id, chain, token, amount_native, amount_usd, deposit_address, hd_index, status, webhook_url, metadata, created_at, expires_at)
-        VALUES (?,?,?,?,?,?,?,'pending',?,?,?,?)""",
-        (invoice_id, chain, token, amount_native, amount_usd, deposit_address, hd_index, webhook_url, metadata, now.isoformat(), expires_at))
+        (id, chain, token, amount_native, amount_requested, amount_usd, deposit_address, hd_index, status, webhook_url, metadata, created_at, expires_at)
+        VALUES (?,?,?,?,?,?,?,?,'pending',?,?,?,?)""",
+        (invoice_id, chain, token, amount_native, amount_requested, amount_usd, deposit_address, hd_index, webhook_url, metadata, now.isoformat(), expires_at))
     db.commit()
     payment_path = current_app.config["PAYMENT_PATH"]
     host = request.host_url.rstrip("/")

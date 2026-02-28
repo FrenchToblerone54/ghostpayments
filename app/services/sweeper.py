@@ -1,5 +1,8 @@
 import os
+import logging
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 from app.services.wallet import derive_address, get_fee_address
 from app.services.chains import (get_native_balance, get_token_balance, get_gas_price,
     estimate_token_transfer_gas, send_native, send_token, wait_for_receipt, parse_token_amount)
@@ -28,6 +31,7 @@ def _resolve_main_wallet():
     raise ValueError("No main wallet configured: set MAIN_WALLET_ADDRESS or MAIN_MNEMONIC")
 
 def sweep_token(invoice):
+    logger.info("Sweeping token for invoice %s (%s %s)", invoice["id"], invoice["token"], invoice["chain"])
     chain = invoice["chain"]
     main_mnemonic = os.getenv("MAIN_MNEMONIC", "")
     fee_mnemonic = os.getenv("FEE_MNEMONIC", "")
@@ -57,9 +61,11 @@ def sweep_token(invoice):
     db.commit()
     invoice_row = db.execute("SELECT * FROM invoices WHERE id=?", (invoice["id"],)).fetchone()
     db.close()
+    logger.info("Token sweep complete for invoice %s, tx=%s", invoice["id"], tx_out_hash)
     _fire_webhook(invoice_row)
 
 def sweep_native(invoice):
+    logger.info("Sweeping native for invoice %s (%s)", invoice["id"], invoice["chain"])
     chain = invoice["chain"]
     main_mnemonic = os.getenv("MAIN_MNEMONIC", "")
     main_wallet = _resolve_main_wallet()
@@ -73,6 +79,7 @@ def sweep_native(invoice):
     if sweep_amount <= 0:
         return
     tx_out_hash = send_native(chain, deposit_privkey, main_wallet, sweep_amount)
+    logger.info("Native sweep complete for invoice %s, tx=%s", invoice["id"], tx_out_hash)
     db = open_db()
     db.execute("UPDATE invoices SET status='completed', tx_out_hash=?, completed_at=? WHERE id=?",
         (tx_out_hash, _now(), invoice["id"]))

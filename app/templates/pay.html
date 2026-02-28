@@ -27,8 +27,8 @@
     <div class="pay-amount-block">
       <div class="pay-label">Send exactly</div>
       <div class="pay-amount-row">
-        <div class="pay-amount">{{ invoice.amount_native }} <span class="pay-token">{{ invoice.token }}</span></div>
-        <button class="copy-btn" data-copy="{{ invoice.amount_native }}" title="Copy amount">
+        <div class="pay-amount">{{ invoice.amount_requested or invoice.amount_native }} <span class="pay-token">{{ invoice.token }}</span></div>
+        <button class="copy-btn" data-copy="{{ invoice.amount_requested or invoice.amount_native }}" title="Copy amount">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
         </button>
       </div>
@@ -61,6 +61,7 @@
     <div class="pay-network-note mono">
       Network: {{ invoice.chain }} &nbsp;·&nbsp; Expires at {{ invoice.expires_at[:16].replace("T", " ") }} UTC
     </div>
+    <div class="pay-fee-note">Network fees are not included — sender is responsible for gas</div>
   </div>
 </div>
 
@@ -121,7 +122,8 @@ const PP_BASE = "{{ pp }}";
 .status-dot.sweeping { background: #bb44ff; }
 .status-dot.expired { background: var(--slate-dim); animation: none; }
 .status-text { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
-.pay-network-note { padding: 10px 28px 20px; font-size: 11px; color: var(--slate-dim); text-align: center; }
+.pay-network-note { padding: 10px 28px 4px; font-size: 11px; color: var(--slate-dim); text-align: center; }
+.pay-fee-note { padding: 0 28px 20px; font-size: 11px; color: var(--green); text-align: center; opacity: .7; }
 .success-overlay { position: fixed; inset: 0; background: rgba(7,10,15,.9); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 24px; backdrop-filter: blur(10px); }
 .success-card { max-width: 360px; width: 100%; padding: 48px 36px; text-align: center; animation: success-glow 2s ease-in-out infinite; }
 .success-ghost { color: var(--green); width: 60px; margin: 0 auto 24px; animation: float 2.5s ease-in-out infinite; }

@@ -24,13 +24,28 @@
   updateCountdown();
   setInterval(updateCountdown, 1000);
 
+  function _markCopied(btn) {
+    btn.classList.add("copied");
+    setTimeout(function() { btn.classList.remove("copied"); }, 1500);
+  }
   document.querySelectorAll(".copy-btn").forEach(function(btn) {
     btn.addEventListener("click", function() {
       var text = btn.dataset.copy;
-      navigator.clipboard.writeText(text).then(function() {
-        btn.classList.add("copied");
-        setTimeout(function() { btn.classList.remove("copied"); }, 1500);
-      });
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() { _markCopied(btn); }).catch(function() {
+          var ta = document.createElement("textarea");
+          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.focus(); ta.select();
+          try { document.execCommand("copy"); } catch(e) {}
+          document.body.removeChild(ta); _markCopied(btn);
+        });
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        try { document.execCommand("copy"); } catch(e) {}
+        document.body.removeChild(ta); _markCopied(btn);
+      }
     });
   });
 

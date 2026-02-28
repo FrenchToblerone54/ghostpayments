@@ -2,7 +2,7 @@ import sqlite3
 import os
 from flask import g, current_app
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 def get_db():
     if "db" not in g:
@@ -46,6 +46,7 @@ def _apply_initial_schema(db):
             chain           TEXT NOT NULL CHECK(chain IN ('BSC','POLYGON')),
             token           TEXT NOT NULL CHECK(token IN ('USDT','BNB','POL')),
             amount_native   TEXT NOT NULL,
+            amount_requested TEXT,
             amount_usd      REAL,
             deposit_address TEXT NOT NULL,
             hd_index        INTEGER NOT NULL,
@@ -78,9 +79,13 @@ def _apply_initial_schema(db):
         CREATE INDEX IF NOT EXISTS idx_invoices_created   ON invoices(created_at);
         CREATE INDEX IF NOT EXISTS idx_api_keys_hash      ON api_keys(key_hash);
 
-        PRAGMA user_version = 1;
+        PRAGMA user_version = 2;
     """)
     db.commit()
 
 def _run_migrations(db, current_version):
-    pass
+    if current_version < 2:
+        db.execute("ALTER TABLE invoices ADD COLUMN amount_requested TEXT")
+        db.execute("UPDATE invoices SET amount_requested=amount_native WHERE amount_requested IS NULL")
+        db.execute("PRAGMA user_version=2")
+        db.commit()
