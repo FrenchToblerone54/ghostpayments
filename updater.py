@@ -2,11 +2,13 @@ import sys
 import os
 import asyncio
 import hashlib
+import logging
 from pathlib import Path
 import aiohttp
 
 GITHUB_REPO = "FrenchToblerone54/ghostpayments"
 COMPONENT = "ghostpayments"
+logger = logging.getLogger(__name__)
 
 class Updater:
     def __init__(self, check_interval=300, check_on_startup=True, http_proxy="", https_proxy=""):
@@ -21,7 +23,7 @@ class Updater:
     def _get_current_version(self):
         script_path = Path(sys.argv[0])
         if script_path.name == COMPONENT:
-            return "v0.1.14"
+            return "v0.1.15"
         return "dev"
 
     def _proxy_for(self, url):
@@ -56,9 +58,11 @@ class Updater:
             if self.current_version == "dev":
                 return None
             if latest != self.current_version:
+                logger.info(f"New version available: {latest} (current: {self.current_version})")
                 return latest
-        except Exception:
-            pass
+            logger.debug(f"Already up to date: {self.current_version}")
+        except Exception as e:
+            logger.error(f"Error checking for updates: {e}")
         return None
 
     def verify_checksum(self, binary_path, expected):
@@ -75,16 +79,18 @@ class Updater:
         tmp_dir.mkdir(parents=True, exist_ok=True)
         binary_path = tmp_dir / COMPONENT
         sha_path = tmp_dir / f"{COMPONENT}.sha256"
-        print(f"Downloading {new_version}...")
+        logger.info(f"Downloading update from {self.binary_url}")
         await self.http_download(self.binary_url, binary_path, 300)
         await self.http_download(f"{self.binary_url}.sha256", sha_path, 30)
         expected = sha_path.read_text().strip()
         if not self.verify_checksum(binary_path, expected):
-            print("Checksum mismatch — aborting update")
+            logger.error("Checksum mismatch — aborting update")
             return
+        logger.info("Checksum verified")
         current_bin = Path(sys.argv[0]).resolve()
         os.chmod(binary_path, 0o755)
         args = " ".join(sys.argv[1:])
+        logger.info(f"Successfully updated to {new_version}, restarting...")
         os.execv("/bin/bash", ["/bin/bash", "-c", f"sleep 0.5; mv '{binary_path}' '{current_bin}'; exec '{current_bin}' {args}"])
 
     async def manual_update(self):
@@ -104,10 +110,14 @@ class Updater:
         os.system("systemctl restart ghostpayments")
 
     async def update_loop(self, shutdown_event):
+        logger.info(f"Auto-update checker started (interval: {self.check_interval}s, current version: {self.current_version})")
         if self.check_on_startup:
+            logger.info("Checking for updates on startup...")
             new_version = await self.check_for_update()
             if new_version:
+                logger.info(f"Updating to {new_version}...")
                 await self.download_update(new_version)
+                logger.info("Update complete, shutting down for systemd restart...")
                 shutdown_event.set()
                 return
         while not shutdown_event.is_set():
@@ -115,10 +125,12 @@ class Updater:
                 await asyncio.sleep(self.check_interval)
                 new_version = await self.check_for_update()
                 if new_version:
+                    logger.info(f"Updating to {new_version}...")
                     await self.download_update(new_version)
+                    logger.info("Update complete, shutting down for systemd restart...")
                     shutdown_event.set()
                     return
             except asyncio.CancelledError:
                 break
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Error in update loop: {e}")
