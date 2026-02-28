@@ -34,7 +34,7 @@ def sweep_token(invoice):
     main_wallet = _resolve_main_wallet()
     gas_buffer = int(os.getenv("GAS_BUFFER_PERCENT", 20))
     deposit_address, deposit_privkey = derive_address(main_mnemonic, invoice["hd_index"])
-    _, fee_privkey = get_fee_address(fee_mnemonic or None, chain)
+    fee_address, fee_privkey = get_fee_address(fee_mnemonic or None, chain)
     gas_units = estimate_token_transfer_gas(chain, invoice["token"])
     gas_price = get_gas_price(chain)
     gas_cost_wei = int(gas_units * gas_price * (1 + gas_buffer / 100))
@@ -46,6 +46,11 @@ def sweep_token(invoice):
         wait_for_receipt(chain, gas_tx_hash)
     token_balance = get_token_balance(chain, deposit_address, invoice["token"])
     tx_out_hash = send_token(chain, deposit_privkey, invoice["token"], main_wallet, token_balance)
+    wait_for_receipt(chain, tx_out_hash)
+    leftover = get_native_balance(chain, deposit_address)
+    refund_gas = int(21000 * gas_price * (1 + gas_buffer / 100))
+    if leftover > refund_gas:
+        send_native(chain, deposit_privkey, fee_address, leftover - refund_gas)
     db = open_db()
     db.execute("UPDATE invoices SET status='completed', tx_out_hash=?, gas_tx_hash=?, completed_at=? WHERE id=?",
         (tx_out_hash, gas_tx_hash, _now(), invoice["id"]))
