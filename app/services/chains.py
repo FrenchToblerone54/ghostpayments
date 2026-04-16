@@ -14,7 +14,9 @@ USDT_CONTRACTS = {
 }
 
 def _make_w3(rpc_url, poa=False, proxy=None):
-    req_kwargs = {"proxies": {"http": proxy, "https": proxy}} if proxy else {}
+    req_kwargs = {"headers": {"User-Agent": "ghostpayments"}}
+    if proxy:
+        req_kwargs["proxies"] = {"http": proxy, "https": proxy}
     w3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs=req_kwargs))
     if poa:
         w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)

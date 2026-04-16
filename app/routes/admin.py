@@ -189,7 +189,7 @@ def make_admin_bp(url_prefix):
             return jsonify({"ok": False, "error": "invalid params"})
         try:
             from web3 import Web3
-            w3 = Web3(Web3.HTTPProvider(url))
+            w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"headers": {"User-Agent": "ghostpayments"}}))
             block = w3.eth.block_number
             return jsonify({"ok": True, "block": block})
         except Exception as e:
