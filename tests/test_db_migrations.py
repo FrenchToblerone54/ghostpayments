@@ -14,7 +14,7 @@ def tmp_db(tmp_path):
 def test_schema_version(tmp_db):
     db = open_db(tmp_db)
     version = db.execute("PRAGMA user_version").fetchone()[0]
-    assert version == 1
+    assert version == 2
     db.close()
 
 def test_invoices_table_exists(tmp_db):
@@ -51,5 +51,5 @@ def test_idempotent_init(tmp_db):
     init_db(tmp_db)
     db = open_db(tmp_db)
     version = db.execute("PRAGMA user_version").fetchone()[0]
-    assert version == 1
+    assert version == 2
     db.close()
