@@ -36,6 +36,7 @@ def init_db(db_path=None):
     version = db.execute("PRAGMA user_version").fetchone()[0]
     if version == 0:
         _apply_initial_schema(db)
+        version = db.execute("PRAGMA user_version").fetchone()[0]
     _run_migrations(db, version)
     db.close()
 
