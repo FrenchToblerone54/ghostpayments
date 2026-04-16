@@ -25,7 +25,7 @@ def _make_w3(rpc_url, poa=False, proxy=None):
 def get_w3(chain):
     if chain == "BSC":
         return _make_w3(os.getenv("BSC_RPC_URL", "https://bsc-dataseed.binance.org"), poa=True, proxy=os.getenv("BSC_RPC_PROXY", "") or None)
-    return _make_w3(os.getenv("POLYGON_RPC_URL", "https://polygon-rpc.com"), poa=True, proxy=os.getenv("POLYGON_RPC_PROXY", "") or None)
+    return _make_w3(os.getenv("POLYGON_RPC_URL", "https://polygon-bor-rpc.publicnode.com"), poa=True, proxy=os.getenv("POLYGON_RPC_PROXY", "") or None)
 
 def get_native_balance(chain, address):
     return get_w3(chain).eth.get_balance(address)

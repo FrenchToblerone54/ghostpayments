@@ -127,8 +127,8 @@ if [ ! -f "${CONFIG_DIR}/.env" ]; then
     p_info "Network Configuration"
     p_ask "BSC RPC URL [https://bsc-dataseed.binance.org]: "; read -r BSC_RPC
     BSC_RPC="${BSC_RPC:-https://bsc-dataseed.binance.org}"
-    p_ask "Polygon RPC URL [https://polygon-rpc.com]: "; read -r POL_RPC
-    POL_RPC="${POL_RPC:-https://polygon-rpc.com}"
+    p_ask "Polygon RPC URL [https://polygon-bor-rpc.publicnode.com]: "; read -r POL_RPC
+    POL_RPC="${POL_RPC:-https://polygon-bor-rpc.publicnode.com}"
     p_ask "Listen port [5000]: "; read -r PORT
     PORT="${PORT:-5000}"
     p_sep

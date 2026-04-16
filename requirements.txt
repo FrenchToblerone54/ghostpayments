@@ -10,4 +10,3 @@ python-dotenv>=1.0
 nanoid>=2.0
 requests>=2.31
 PyInstaller>=6.0
-pytest>=8.0
