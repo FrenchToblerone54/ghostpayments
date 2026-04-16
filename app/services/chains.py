@@ -13,16 +13,17 @@ USDT_CONTRACTS = {
     "POLYGON": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
 }
 
-def _make_w3(rpc_url, poa=False):
-    w3 = Web3(Web3.HTTPProvider(rpc_url))
+def _make_w3(rpc_url, poa=False, proxy=None):
+    req_kwargs = {"proxies": {"http": proxy, "https": proxy}} if proxy else {}
+    w3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs=req_kwargs))
     if poa:
         w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
     return w3
 
 def get_w3(chain):
     if chain == "BSC":
-        return _make_w3(os.getenv("BSC_RPC_URL", "https://bsc-dataseed.binance.org"), poa=True)
-    return _make_w3(os.getenv("POLYGON_RPC_URL", "https://polygon-rpc.com"), poa=True)
+        return _make_w3(os.getenv("BSC_RPC_URL", "https://bsc-dataseed.binance.org"), poa=True, proxy=os.getenv("BSC_RPC_PROXY", "") or None)
+    return _make_w3(os.getenv("POLYGON_RPC_URL", "https://polygon-rpc.com"), poa=True, proxy=os.getenv("POLYGON_RPC_PROXY", "") or None)
 
 def get_native_balance(chain, address):
     return get_w3(chain).eth.get_balance(address)

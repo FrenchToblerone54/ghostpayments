@@ -9,6 +9,8 @@ class Config:
     MAIN_WALLET_ADDRESS = os.getenv("MAIN_WALLET_ADDRESS", "")  # blank = auto-derive from MAIN_MNEMONIC index 0
     BSC_RPC_URL = os.getenv("BSC_RPC_URL", "https://bsc-dataseed.binance.org")
     POLYGON_RPC_URL = os.getenv("POLYGON_RPC_URL", "https://polygon-rpc.com")
+    BSC_RPC_PROXY = os.getenv("BSC_RPC_PROXY", "")
+    POLYGON_RPC_PROXY = os.getenv("POLYGON_RPC_PROXY", "")
     ADMIN_PATH = os.getenv("ADMIN_PATH", "admin")
     PAYMENT_PATH = os.getenv("PAYMENT_PATH", "pay")
     INVOICE_TTL_MINUTES = int(os.getenv("INVOICE_TTL_MINUTES", 30))

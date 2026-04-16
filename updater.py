@@ -23,7 +23,7 @@ class Updater:
     def _get_current_version(self):
         script_path = Path(sys.argv[0])
         if script_path.name == COMPONENT:
-            return "v0.1.15"
+            return "v0.1.16"
         return "dev"
 
     def _proxy_for(self, url):
@@ -95,9 +95,9 @@ class Updater:
 
     async def manual_update(self):
         if not self.http_proxy:
-            self.http_proxy = os.getenv("HTTP_PROXY", "")
+            self.http_proxy = os.getenv("UPDATE_HTTP_PROXY", "")
         if not self.https_proxy:
-            self.https_proxy = os.getenv("HTTPS_PROXY", "")
+            self.https_proxy = os.getenv("UPDATE_HTTPS_PROXY", "")
         print(f"Current version: {self.current_version}")
         print("Checking for updates...")
         new_version = await self.check_for_update()

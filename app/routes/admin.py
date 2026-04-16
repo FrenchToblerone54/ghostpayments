@@ -1,11 +1,15 @@
 import hashlib
 import os
 import re
+import time
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, abort, request, redirect, flash, jsonify, current_app
 from nanoid import generate
 from app.db import get_db
 from app.services.env_writer import write_env
+
+_fee_cache = {}
+_FEE_TTL = 60
 
 def _now():
     return datetime.now(timezone.utc).isoformat()
@@ -33,10 +37,16 @@ def make_admin_bp(url_prefix):
             from app.services.wallet import get_fee_address
             fee_mnemonic = current_app.config["FEE_MNEMONIC"]
             fee_privkey = current_app.config["FEE_PRIVATE_KEY"]
-            for chain in ("BSC", "POLYGON"):
-                addr, _ = get_fee_address(fee_mnemonic or None)
-                bal_wei = get_native_balance(chain, addr)
-                fee_balances[chain] = {"address": addr, "balance_wei": bal_wei, "balance": bal_wei / 10**18}
+            now = time.time()
+            if _fee_cache.get("ts", 0)+_FEE_TTL > now:
+                fee_balances = _fee_cache["data"]
+            else:
+                for chain in ("BSC", "POLYGON"):
+                    addr, _ = get_fee_address(fee_mnemonic or None)
+                    bal_wei = get_native_balance(chain, addr)
+                    fee_balances[chain] = {"address": addr, "balance_wei": bal_wei, "balance": bal_wei/10**18}
+                _fee_cache["ts"] = now
+                _fee_cache["data"] = fee_balances
         except Exception:
             pass
         return render_template("admin/dashboard.html", stats=stats, invoices=[dict(i) for i in invoices], fee_balances=fee_balances)
@@ -94,7 +104,8 @@ def make_admin_bp(url_prefix):
         return render_template("admin/settings.html",
             admin_path_val=cfg["ADMIN_PATH"], payment_path_val=cfg["PAYMENT_PATH"],
             main_wallet=cfg["MAIN_WALLET_ADDRESS"], bsc_rpc=cfg["BSC_RPC_URL"],
-            pol_rpc=cfg["POLYGON_RPC_URL"], invoice_ttl=cfg["INVOICE_TTL_MINUTES"],
+            pol_rpc=cfg["POLYGON_RPC_URL"], bsc_rpc_proxy=cfg["BSC_RPC_PROXY"],
+            pol_rpc_proxy=cfg["POLYGON_RPC_PROXY"], invoice_ttl=cfg["INVOICE_TTL_MINUTES"],
             bsc_confs=cfg["BSC_CONFIRMATIONS"], pol_confs=cfg["POLYGON_CONFIRMATIONS"],
             gas_buffer=cfg["GAS_BUFFER_PERCENT"], poll_interval=cfg["POLL_INTERVAL_SECONDS"],
             auto_update=cfg["AUTO_UPDATE"], update_interval=cfg["UPDATE_CHECK_INTERVAL"],
@@ -140,6 +151,8 @@ def make_admin_bp(url_prefix):
             val = request.form.get(field, "").strip()
             if val:
                 updates[field] = val
+        for field in ("BSC_RPC_PROXY", "POLYGON_RPC_PROXY"):
+            updates[field] = request.form.get(field, "").strip()
         if updates:
             write_env(updates)
             flash("Wallet settings saved. Restart required.", "restart")

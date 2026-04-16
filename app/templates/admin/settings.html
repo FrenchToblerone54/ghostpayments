@@ -117,6 +117,11 @@
               <div id="polResult" style="font-family:var(--font-mono);font-size:11px;margin-top:4px;"></div>
             </div>
           </div>
+          <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-dim);margin-bottom:16px;">RPC Proxies</div>
+            <div class="form-group"><label>BSC RPC Proxy</label><input type="text" name="BSC_RPC_PROXY" value="{{ bsc_rpc_proxy }}" placeholder="http://proxy:port or blank"></div>
+            <div class="form-group"><label>Polygon RPC Proxy</label><input type="text" name="POLYGON_RPC_PROXY" value="{{ pol_rpc_proxy }}" placeholder="http://proxy:port or blank"></div>
+          </div>
           <button type="submit" class="btn btn-primary">Save Wallets</button>
         </form>
       </div>
