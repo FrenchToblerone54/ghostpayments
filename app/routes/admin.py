@@ -24,12 +24,8 @@ def make_admin_bp(url_prefix):
     @admin_bp.route("/dashboard")
     def dashboard():
         db = get_db()
-        stats = {
-            "total": db.execute("SELECT COUNT(*) FROM invoices").fetchone()[0],
-            "completed": db.execute("SELECT COUNT(*) FROM invoices WHERE status='completed'").fetchone()[0],
-            "pending": db.execute("SELECT COUNT(*) FROM invoices WHERE status='pending'").fetchone()[0],
-            "expired": db.execute("SELECT COUNT(*) FROM invoices WHERE status='expired'").fetchone()[0],
-        }
+        _r = db.execute("SELECT COUNT(*), SUM(status='completed'), SUM(status='pending'), SUM(status='expired') FROM invoices").fetchone()
+        stats = {"total": _r[0], "completed": _r[1] or 0, "pending": _r[2] or 0, "expired": _r[3] or 0}
         invoices = db.execute("SELECT * FROM invoices ORDER BY created_at DESC LIMIT 50").fetchall()
         fee_balances = {}
         try:
